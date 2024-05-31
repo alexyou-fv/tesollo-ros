@@ -5,9 +5,9 @@
 
 <center><img src="https://cdn.imweb.me/thumbnail/20240102/4404e0bb0eae6.png" style="width: 80%;"/></center>
 
-This is Delto Gripper ROS 2 package.
+This is Delto Gripper ROS package.
 
-Some of the new features are enabled by ROS2 and include 
+Some of the new features are enabled by ROS and include 
 decreased latency, improved security, and more flexibility regarding middleware configuration. 
 
 
@@ -70,7 +70,7 @@ Some physical measurements (like PID Gain, inertia) may not be accurate. Adjustm
 sudo apt install ros-melodic-moveit
 ```
 
-3. **Create a new ROS2 workspace**:
+3. **Create a new ROS workspace**:
 
 
 
