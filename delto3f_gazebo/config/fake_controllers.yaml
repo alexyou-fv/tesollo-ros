@@ -1,0 +1,27 @@
+controller_list:
+  - name: fake_F1_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - F1M1
+      - F1M2
+      - F1M3
+      - F1M4
+  - name: fake_F2_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - F2M1
+      - F2M2
+      - F2M3
+      - F2M4
+  - name: fake_F3_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - F3M1
+      - F3M2
+      - F3M3
+      - F3M4
+initial:  # Define initial robot poses.
+#  - group: F1
+#    pose: home
+
+  []

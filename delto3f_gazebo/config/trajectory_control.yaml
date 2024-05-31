@@ -1,0 +1,56 @@
+delto:
+  F1_controller:
+    type: position_controllers/JointTrajectoryController
+    joints:
+      - F1M1
+      - F1M2
+      - F1M3
+      - F1M4
+    constraints:
+      goal_time: 0.6
+      stopped_velocity_tolerance: 0.05
+      F1M1: {trajectory: 0.1, goal: 0.1}
+      F1M2: {trajectory: 0.1, goal: 0.1}
+      F1M3: {trajectory: 0.1, goal: 0.1}
+      F1M4: {trajectory: 0.1, goal: 0.1}
+    stop_trajectory_duration: 0.5
+    state_publish_rate:  50
+    action_monitor_rate: 10
+
+  F2_controller:
+    type: position_controllers/JointTrajectoryController
+    joints:
+      - F2M1
+      - F2M2
+      - F2M3
+      - F2M4
+    constraints:
+      goal_time: 0.6
+      stopped_velocity_tolerance: 0.05
+      F2M1: {trajectory: 0.1, goal: 0.1}
+      F2M2: {trajectory: 0.1, goal: 0.1}
+      F2M3: {trajectory: 0.1, goal: 0.1}
+      F2M4: {trajectory: 0.1, goal: 0.1}
+    stop_trajectory_duration: 0.5
+    state_publish_rate:  50
+    action_monitor_rate: 10
+
+  F3_controller:
+    type: position_controllers/JointTrajectoryController
+    joints:
+      - F3M1
+      - F3M2
+      - F3M3
+      - F3M4
+    constraints:
+      goal_time: 0.6
+      stopped_velocity_tolerance: 0.05
+      F3M1: {trajectory: 0.1, goal: 0.1}
+      F3M2: {trajectory: 0.1, goal: 0.1}
+      F3M3: {trajectory: 0.1, goal: 0.1}
+      F3M4: {trajectory: 0.1, goal: 0.1}
+    stop_trajectory_duration: 0.5
+    state_publish_rate:  50
+    action_monitor_rate: 10
+
+    

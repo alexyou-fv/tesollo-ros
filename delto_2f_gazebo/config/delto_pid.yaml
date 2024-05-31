@@ -1,0 +1,12 @@
+delto:
+  gazebo_ros_control:
+    pid_gains:
+      Distance:
+        p: 0.1
+        i: 0.001
+        d: 0.1
+      JOINT2:
+        p: 0.1
+        i: 0.001
+        d: 0.1
+      

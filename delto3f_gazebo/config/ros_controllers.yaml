@@ -1,0 +1,91 @@
+# # Simulation settings for using moveit_sim_controllers
+moveit_sim_hw_interface:
+  joint_model_group: todo_group_name
+  joint_model_group_pose: todo_state_name
+# Settings for ros_control_boilerplate control loop
+generic_hw_control_loop:
+  loop_hz: 300
+  cycle_time_error_threshold: 0.01
+# Settings for ros_control hardware interface
+hardware_interface:
+  joints:
+    - F1M1
+    - F1M2
+    - F1M3
+    - F1M4
+    - F2M1
+    - F2M2
+    - F2M3
+    - F2M4
+    - F3M1
+    - F3M2
+    - F3M3
+    - F3M4
+  sim_control_mode: 1  # 0: position, 1: velocity
+# # Publish all joint states
+# # Creates the /joint_states topic necessary in ROS
+# joint_state_controller:
+#   type: joint_state_controller/JointStateController
+#   publish_rate: 50
+# controller_list:
+#   - name: F2_controller
+#     action_ns: follow_joint_trajectory
+#     default: True
+#     type: FollowJointTrajectory
+#     joints:
+#       - F2M1
+#       - F2M2
+#       - F2M3
+#       - F2M4
+#   - name: F3_controller
+#     action_ns: follow_joint_trajectory
+#     default: True
+#     type: FollowJointTrajectory
+#     joints:
+#       - F3M1
+#       - F3M2
+#       - F3M3
+#       - F3M4
+#   - name: F1_controller
+#     action_ns: follow_joint_trajectory
+#     default: True
+#     type: FollowJointTrajectory
+#     joints:
+#       - F1M1
+#       - F1M2
+#       - F1M3
+#       - F1M4
+
+joint_state_controller:
+  type: joint_state_controller/JointStateController
+  publish_rate: 50
+
+
+controller_list:
+  - name: /delto/F1_controller
+    action_ns: follow_joint_trajectory
+    default: True
+    type: FollowJointTrajectory
+    joints:
+      - F1M1
+      - F1M2
+      - F1M3
+      - F1M4
+  - name: /delto/F2_controller
+    action_ns: follow_joint_trajectory
+    default: True
+    type: FollowJointTrajectory
+    joints:
+      - F2M1
+      - F2M2
+      - F2M3
+      - F2M4
+  - name: /delto/F3_controller
+    action_ns: follow_joint_trajectory
+    default: True
+    type: FollowJointTrajectory
+    joints:
+      - F3M1
+      - F3M2
+      - F3M3
+      - F3M4

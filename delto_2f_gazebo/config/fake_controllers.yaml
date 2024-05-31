@@ -1,0 +1,10 @@
+controller_list:
+  - name: fake_DG2F_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - Distance
+initial:  # Define initial robot poses.
+#  - group: DG2F
+#    pose: home
+
+  []

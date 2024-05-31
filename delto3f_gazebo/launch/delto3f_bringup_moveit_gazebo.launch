@@ -1,0 +1,75 @@
+<launch>
+
+  <!-- By default, use the URDF location provided from the package -->
+  <param name="robot_description" command="$(find xacro)/xacro --inorder $(find delto_description)/urdf/delto_gripper_3f_test.urdf"/>
+
+  <!-- Launch the gazebo simulator and spawn the robot -->
+  <arg name="x" default="0"/>
+  <arg name="y" default="0"/>
+  <arg name="z" default="0"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="debug" value="false"/>
+  </include>
+
+  <!-- If needed, broadcast static tf for the robot root -->
+  <node name="robot_spawn" pkg="gazebo_ros" type="spawn_model"
+    args="-urdf -param robot_description -model delto -x $(arg x) -y $(arg y) -z $(arg z)"/>
+
+    <!-- Launch the controllers -->
+    <node name="controller_spawner" pkg="controller_manager" type="spawner"  
+        output="screen" respawn="false" ns="/delto"
+        args="joint_state_controller
+            F1_controller
+            F2_controller
+            F3_controller
+            --timeout 60 ">
+    </node>
+
+  <rosparam command="load" file="$(find delto3f_gazebo)/config/delto_joint_states.yaml"/>
+  <rosparam command="load" file="$(find delto3f_gazebo)/config/trajectory_control.yaml"/>
+  <rosparam command="load" file="$(find delto3f_gazebo)/config/delto_pid.yaml"/>
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
+    respawn="false" output="screen">
+    <remap from="joint_states" to="delto/joint_states"/>
+  </node>
+
+  <!-- <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <remap from="joint_states" to="delto/joint_states"/>
+  </node> -->
+
+  <!-- <node name="movegroup_joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+  </node> -->
+
+    <!-- <node name="movegroup_robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
+    respawn="false" output="screen">
+  </node>
+ -->
+
+  <include file="$(find delto3f_gazebo)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="false"/>
+    <remap from="/joint_states" to="/delto/joint_states"/>
+  </include>
+
+    <include file= "$(find delto3f_gazebo)/launch/move_group.launch" >
+        <arg name="publish_monitored_planning_scene" value="true" />
+        <remap from="/joint_states" to="/delto/joint_states"/>
+    </include>
+
+    <!-- <node name="move_group" pkg="delto3f_gazebo" type="move_group" respawn="false" output="screen">
+    <remap>
+        <from>/joint_states</from>
+        <to>/delto/joint_states</to>
+    </remap>
+    </node> -->
+
+  <include file="$(find delto3f_gazebo)/launch/moveit_rviz.launch">
+    <arg name="rviz_config" value="$(find delto3f_gazebo)/launch/moveit.rviz"/>
+    <!-- <remap from="/joint_states" to="/delto/joint_states"/> -->
+  </include>
+
+</launch>

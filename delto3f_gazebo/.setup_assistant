@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: delto_description
+    relative_path: urdf/delto_gripper_3f_test.urdf
+    xacro_args: ""
+  SRDF:
+    relative_path: config/delto_gripper_3f.srdf
+  CONFIG:
+    author_name: hong
+    author_email: khc@tesollo.com
+    generated_timestamp: 1715317801
