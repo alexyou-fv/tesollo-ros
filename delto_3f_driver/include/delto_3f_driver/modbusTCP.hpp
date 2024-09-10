@@ -190,7 +190,7 @@ public:
 
         boost::asio::write(socket_, boost::asio::buffer(request));
         
-        // 응답 처리 로직이 필요하면 여기에 추가
+        // 응답 처리 로직 필요
     }
 
     void writeSingleRegister(uint16_t address, uint16_t value)
@@ -253,42 +253,3 @@ private:
 
     std::mutex mutex_;
 };
-
-
-// bool writeMultiRegisters(uint16_t address, const std::vector<uint16_t> &values)
-// {
-//     // (여기에 기존의 요청 전송 코드를 삽입...)
-
-//     try {
-//         // 응답 버퍼 준비
-//         std::vector<uint8_t> response(8); // Write Multiple Registers 응답의 기대 크기는 8바이트입니다.
-//         size_t reply_length = boost::asio::read(socket_, boost::asio::buffer(response));
-
-//         // 응답 길이 확인
-//         if (reply_length != response.size()) {
-//             std::cerr << "Invalid response length." << std::endl;
-//             return false;
-//         }
-
-//         // 응답에서 트랜잭션 ID, 프로토콜 ID, 길이, 단위 ID, 함수 코드 확인
-//         if (response[0] == static_cast<uint8_t>(transaction_id_ >> 8) &&
-//             response[1] == static_cast<uint8_t>(transaction_id_ & 0xFF) &&
-//             response[2] == 0x00 && response[3] == 0x00 &&
-//             response[5] == 0x01 && response[6] == 0x10) {
-//             // 응답이 성공적인 경우
-//             return true;
-//         } else {
-//             // 에러 코드 처리 (Modbus 예외 응답은 함수 코드의 최상위 비트가 1로 설정됩니다)
-//             if ((response[6] & 0x80) != 0) {
-//                 uint8_t errorCode = response[7];
-//                 std::cerr << "Modbus exception code: " << static_cast<int>(errorCode) << std::endl;
-//             } else {
-//                 std::cerr << "Mismatch in response." << std::endl;
-//             }
-//             return false;
-//         }
-//     } catch (const std::exception& e) {
-//         std::cerr << "Exception in response handling: " << e.what() << std::endl;
-//         return false;
-//     }
-// }
