@@ -2,6 +2,7 @@
 #include <std_msgs/Int32.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float32MultiArray.h>
+#include <std_msgs/Int32MultiArray.h>
 #include <sensor_msgs/JointState.h>
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
@@ -29,19 +30,23 @@ private:
     void controller_timer_callback();
     void targetjoint_deg_callback(const std_msgs::Float32MultiArray::ConstPtr& msg);
     void targetjoint_rad_callback(const std_msgs::Float32MultiArray::ConstPtr& msg);
-  
-    std::vector<double> Torque2Duty(std::vector<double> tq_u);
-    std::vector<double> JointControl(std::vector<double> target_joint_state,
-                                        std::vector<double> current_joint_state,
-                                        std::vector<double> joint_dot,
-                                        std::vector<double> kp,
-                                        std::vector<double> kd);
+
+    void modify_current_mode_callback(const std_msgs::Int32MultiArray::ConstPtr& msg);
+    void send_current_duty_target();
+
+    std::vector<double> Torque2Duty(const std::vector<double> &tq_u);
+    std::vector<double> JointControl(const std::vector<double> &target_joint_state,
+                                        const std::vector<double> &current_joint_state,
+                                        const std::vector<double> &joint_dot,
+                                        const std::vector<double> &kp,
+                                        const std::vector<double> &kd);
                                         
     std::vector<double> get_position();
   
     ros::Publisher joint_state_pub;
     ros::Subscriber target_joint_deg_sub;
     ros::Subscriber target_joint_rad_sub;
+    ros::Subscriber current_mode_sub;
     ros::Subscriber grasp_mode_sub;
     
     ros::Timer controller_timer;
@@ -82,6 +87,8 @@ private:
     std::vector<double> target_joint_state;
     std::vector<double> joint_dot;
     std::vector<double> pre_joint_state;
+    std::vector<bool> current_control_mode;
+    std::vector<double> last_duty_target;
     
     std::string delto_ip;
     int delto_port;

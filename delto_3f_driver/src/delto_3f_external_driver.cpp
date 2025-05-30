@@ -1,5 +1,5 @@
 #include "delto_3f_driver/delto_3f_external_driver.hpp"
-
+#include <cmath>
 
     DeltoExternalDriver::DeltoExternalDriver() : publish_rate(500.0)
 {
@@ -17,13 +17,14 @@
     current_joint_state = std::vector<double>(12, 0.0);
     joint_dot = std::vector<double>(12, 0.0);
     pre_joint_state = std::vector<double>(12, 0.0);
-
-
+    current_control_mode = std::vector<bool>(12, false);
+    last_duty_target = std::vector<double>(12, 0.0);
     
     joint_state_pub = nh_.advertise<sensor_msgs::JointState>("/gripper/joint_states", 10);
     
     target_joint_deg_sub = nh_.subscribe<std_msgs::Float32MultiArray>("gripper/target_joint_deg", 100, boost::bind(&DeltoExternalDriver::targetjoint_deg_callback, this, _1));
     target_joint_rad_sub = nh_.subscribe<std_msgs::Float32MultiArray>("gripper/target_joint_rad", 100, boost::bind(&DeltoExternalDriver::targetjoint_rad_callback, this, _1));
+    current_mode_sub = nh_.subscribe<std_msgs::Int32MultiArray>("gripper/current_target", 100, boost::bind(&DeltoExternalDriver::modify_current_mode_callback, this, _1));
 
     controller_timer = nh_.createTimer(ros::Duration(1.0/publish_rate), boost::bind(&DeltoExternalDriver::controller_timer_callback, this));
 
@@ -55,6 +56,30 @@ std::vector<double> DeltoExternalDriver::get_position()
     return current_joint_state;
 }
 
+void DeltoExternalDriver::send_current_duty_target() {
+
+        std::vector<int> calcduty;
+
+        calcduty.reserve(12);
+
+        for (int i = 0; i < 12; i++)
+        {
+            if (last_duty_target[i] > 70)
+            {
+                last_duty_target[i] = 70;
+            }
+            else if (last_duty_target[i] < -70)
+            {
+                last_duty_target[i] = -70;
+            }
+
+            calcduty[i] = static_cast<int>(last_duty_target[i] * 10.0);
+        }
+
+        delto_client->send_duty(calcduty);
+}
+
+
 void DeltoExternalDriver::controller_timer_callback()
 {
 
@@ -74,8 +99,6 @@ void DeltoExternalDriver::controller_timer_callback()
     electric_current_state = recieved_data.current;
     current_joint_state = recieved_data.joint;
 
-    
-
     // pub joint state
     if (joint_publish_count++ > 5)
     {   
@@ -91,32 +114,62 @@ void DeltoExternalDriver::controller_timer_callback()
     // PD control
     for (int i = 0; i < 12; ++i)
     {
-        joint_dot[i] = current_joint_state[i] - pre_joint_state[i];
-        pre_joint_state = current_joint_state;
+        if (!current_control_mode[i]) {
+            joint_dot[i] = current_joint_state[i] - pre_joint_state[i];
+            pre_joint_state = current_joint_state;
+        }
     }
     auto tq_u = JointControl(target_joint_state, current_joint_state, joint_dot, kp, kd);
     auto duty = Torque2Duty(tq_u);
-
-    
-    std::vector<int> calcduty;
-
-    calcduty.reserve(12);
-
-    for (int i = 0; i < 12; i++)
-    {
-        if (duty[i] > 70)
-        {
-            duty[i] = 70;
+    for (int i = 0; i < 12; ++i) {
+        if (!current_control_mode[i]) {
+            last_duty_target[i] = duty[i];
         }
-        else if (duty[i] < -70)
-        {
-            duty[i] = -70;
-        }
-
-        calcduty[i] = int(duty[i] * 10.0);
     }
 
-    delto_client->send_duty(calcduty);
+    send_current_duty_target();
+}
+
+void DeltoExternalDriver::modify_current_mode_callback(const std_msgs::Int32MultiArrayConstPtr& msg) {
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    const int rows = msg->data.size() / 12;
+    const int rem = msg->data.size() % 12;
+    if (rows <= 0 || rem > 0) {
+        ROS_ERROR("Received data (target_joint) size empty or not a multiple of 12");
+        return;
+    }
+
+    for (int i = 0; i < 12; i++) {
+
+        const int mode = msg->data[i];
+        if (mode < 0) {
+            continue;
+        }
+
+        if (mode == 0) {
+
+            ROS_INFO("Index %d was detected as mode 0", i);
+
+            if (!current_control_mode[i]) {
+                continue;
+            }
+            ROS_INFO("Set index %d BACK to POSITION CONTROL", i);
+            // Disable current control mode assuming that it's active
+            current_control_mode[i] = false;
+            target_joint_state[i] = current_joint_state[i];
+            pre_joint_state[i] = target_joint_state[i];
+            joint_dot[i] = 0.0;
+        }
+
+        if (mode > 0) {
+            ROS_INFO("Set index %d to CURRENT CONTROL", i);
+            current_control_mode[i] = true;
+            if (rows > 1) {
+                last_duty_target[i] = msg->data[i+12];
+            }
+        }
+    }
 }
 
 
@@ -150,11 +203,11 @@ void DeltoExternalDriver::targetjoint_deg_callback(const std_msgs::Float32MultiA
 }
 
 
-std::vector<double> DeltoExternalDriver::JointControl(std::vector<double> target_joint_state,
-                                                      std::vector<double> current_joint_state,
-                                                      std::vector<double> joint_dot,
-                                                      std::vector<double> kp,
-                                                      std::vector<double> kd)
+std::vector<double> DeltoExternalDriver::JointControl(const std::vector<double> &target_joint_state,
+                                                      const std::vector<double> &current_joint_state,
+                                                      const std::vector<double> &joint_dot,
+                                                      const std::vector<double> &kp,
+                                                      const std::vector<double> &kd)
 {
 
     std::vector<double> tq_u(12, 0.0);
@@ -167,7 +220,7 @@ std::vector<double> DeltoExternalDriver::JointControl(std::vector<double> target
     return tq_u;
 }
 
-std::vector<double> DeltoExternalDriver::Torque2Duty(std::vector<double> tq_u)
+std::vector<double> DeltoExternalDriver::Torque2Duty(const std::vector<double> &tq_u)
 {
 
     std::vector<double> duty(12, 0.0);
