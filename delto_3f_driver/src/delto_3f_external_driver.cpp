@@ -64,13 +64,16 @@ void DeltoExternalDriver::send_current_duty_target() {
 
         for (int i = 0; i < 12; i++)
         {
-            if (last_duty_target[i] > 70)
+
+            const int cap = current_control_mode[i] ? 100 : 70;
+
+            if (last_duty_target[i] > cap)
             {
-                last_duty_target[i] = 70;
+                last_duty_target[i] = cap;
             }
-            else if (last_duty_target[i] < -70)
+            else if (last_duty_target[i] < -cap)
             {
-                last_duty_target[i] = -70;
+                last_duty_target[i] = -cap;
             }
 
             calcduty[i] = static_cast<int>(last_duty_target[i] * 10.0);
